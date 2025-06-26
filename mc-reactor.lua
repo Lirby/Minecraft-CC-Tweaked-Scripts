@@ -21,11 +21,10 @@ while true do
     
     local status = reactor.getStatus()
     local temp = reactor.getTemperature()
-    local coolant = reactor.getCoolantFilled()
-    local maxCoolant = reactor.getCoolantCapacity()
-    local coolantPercent = (coolant / maxCoolant) * 100
-    local steam = reactor.getHeatedCoolantFilled()
-    
+    local coolant = reactor.getCoolant() or 0
+    local maxCoolant = 17500000
+    local coolant = (coolant /maxCoolant) * 100
+
     monitor.setCursorPos(1,3)
     monitor.setTextColor(colors.white)
     monitor.write("Status: ")
@@ -42,7 +41,7 @@ while true do
     monitor.write(string.format("Temperatur: %.1f K", temp))
     
     monitor.setCursorPos(1,5)
-    monitor.write(string.format("Kühlmittel: %d / %d mB (%.1f%%)", coolant, maxCoolant, coolantPercent))
+    monitor.write(string.format("Kühlmittel: %d / %d mB (%.1f%%)", coolant, coolantPercent))
     
     monitor.setCursorPos(1,6)
     monitor.write(string.format("Steam: %d mB", steam))
