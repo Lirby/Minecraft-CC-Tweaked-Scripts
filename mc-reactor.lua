@@ -1,0 +1,55 @@
+local reactor = peripheral.wrap("fissionReactorLogicAdapter_0")
+local monitor = peripheral.wrap("monitor")
+
+monitor.setTextScale(1)
+monitor.setBackgroundColor(colors.black)
+monitor.clear()
+
+local function statusColor(status)
+    if status == true then 
+        return colors.green
+    else
+        return colors.red
+    end
+end
+
+while true do 
+    monitor.clear()
+    monitor.setCursorPos(1,1)
+    monitor.setTextColor(colors.cyan)
+    monitor.write("------ Fission Reactor Dashboard -------")
+    
+    local status = reactor.getStatus()
+    local temp = reactor.getTemperature()
+    local coolant = reactor.getCoolantFilled()
+    local maxCoolant = reactor.getCoolantCapacity()
+    local coolantPercent = (coolant / maxCoolant) * 100
+    local steam = reactor.getHeatedCoolantFilled()
+    
+    monitor.setCursorPos(1,3)
+    monitor.setTextColor(colors.white)
+    monitor.write("Status: ")
+    if status then 
+        monitor.setTextColor(colors.green)
+        monitor.write("AKTIVER BETRIEB")
+    else
+        monitor.setTextColor(colors.red)
+        monitor.write("OFFLINE")
+    end
+    
+    monitor.setCursorPos(1,4)
+    monitor.setTextColor(colors.white)
+    monitor.write(string.format("Temperatur: %.1f K", temp))
+    
+    monitor.setCursorPos(1,5)
+    monitor.write(string.format("Kühlmittel: %d / %d mB (%.1f%%)", coolant, maxCoolant, coolantPercent))
+    
+    monitor.setCursorPos(1,6)
+    monitor.write(string.format("Steam: %d mB", steam))
+    
+    if status == true and (temp > 900 or coolantPercent <40) then
+        reactor.setActive(false)
+    elseif status == false and temp < 750 and coolantPercent > 70 then
+        reactor.setActive(true)
+    end
+    
