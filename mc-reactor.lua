@@ -52,4 +52,7 @@ while true do
     elseif status == false and temp < 750 and coolantPercent > 70 then
         reactor.setActive(true)
     end
+
+    sleep(1)
+end
     
