@@ -1,5 +1,5 @@
 local reactor = peripheral.wrap("fissionReactorLogicAdapter_0")
-local monitor = peripheral.wrap("monitor")
+local monitor = peripheral.wrap("top")
 
 monitor.setTextScale(1)
 monitor.setBackgroundColor(colors.black)
