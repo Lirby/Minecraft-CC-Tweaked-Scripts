@@ -46,7 +46,7 @@ while true do
     
     if status == true and (temp > 900 or coolantPercent <40) then
         redstone.setOutput("back", false)
-    elseif status == false and temp < 250 and coolantPercent > 75 then
+    elseif status == false and temp < 700 and coolantPercent > 75 then
         redstone.setOutput("back", true)
     end
 
