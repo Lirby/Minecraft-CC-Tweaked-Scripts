@@ -21,9 +21,10 @@ while true do
     
     local status = reactor.getStatus()
     local temp = reactor.getTemperature()
-    local coolant = reactor.getCoolant() or 0
+    local coolantData = reactor.getCoolant() or { amount = 0 }
+    local coolant = coolantData.amount
     local maxCoolant = 17500000
-    local coolantPercent = (coolant /maxCoolant) * 100
+    local coolantPercent = (coolant / maxCoolant) * 100
 
     monitor.setCursorPos(1,3)
     monitor.setTextColor(colors.white)
@@ -44,9 +45,9 @@ while true do
     monitor.write(string.format("Kühlmittel: %d / %d mB (%.1f%%)", coolant, maxCoolant, coolantPercent))
     
     if status == true and (temp > 900 or coolantPercent <40) then
-        reactor.setActive(false)
-    elseif status == false and temp < 750 and coolantPercent > 70 then
-        reactor.setActive(true)
+        redstone.setOutput("back", false)
+    elseif status == false and temp < 250 and coolantPercent > 75 then
+        redstone.setOutput("back", true)
     end
 
     sleep(1)
