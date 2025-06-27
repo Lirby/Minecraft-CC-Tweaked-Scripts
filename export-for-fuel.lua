@@ -10,7 +10,7 @@ local function allItemsAvailable()
     local available = meInterface.list()
     local counts = {}
     for _, stack in pairs(available) do
-        counts[stack.name] = stack.count
+        counts[stack.name] = (counts[stack.name] or 0) + stack.count
     end
     
     for _, name in ipairs(items) do
