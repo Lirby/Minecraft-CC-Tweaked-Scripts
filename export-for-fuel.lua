@@ -42,3 +42,5 @@ local function exportAllItems()
         end
     end
 end
+
+exportAllItems()
