@@ -28,7 +28,7 @@ while true do
             local exported = meBridge.exportItem({
                 name = item.name,
                   count = item.count,
-                  toName = peripheral.getName(chest)
+                  toName = "right"
             })
                 
              if exported and exported.count > 0 then
