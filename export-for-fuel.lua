@@ -23,9 +23,9 @@ while true do
         end
     end
     
-    if allAvailavle then
+    if allAvailable then
         for _, item in ipairs(items) do
-            local exported = meBridge.exportItemFormSystem(item, chest)
+            local exported = meBridge.exportItemFromSystem(item, chest)
             if exported then
                 print("Exportiert: " .. item.count .. " von " .. item.name)
             else
