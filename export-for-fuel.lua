@@ -4,7 +4,7 @@ local items = {
     "mekanism:fluorite_gem"
 }
 
-local meInterface = peripheral.wrap("appliedennergistics2:interface")
+local meInterface = peripheral.wrap("appliedenergistics2:interface")
 
 local function allItemsAvailable()
     local available = meInterface.getAvailableItems()
