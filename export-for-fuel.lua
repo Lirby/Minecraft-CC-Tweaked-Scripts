@@ -3,7 +3,7 @@ local chest = peripheral.wrap("right")
 
 local items = {
     { name = "thermal:sulfur", count = 1 },
-    { name = "mekanism:uranium", count = 1 },
+    { name = "mekanism:ingot_uranium", count = 1 },
     { name = "mekanism:fluorite", count =1 },
 }
 
