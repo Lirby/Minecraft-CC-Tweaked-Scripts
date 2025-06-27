@@ -1,24 +1,24 @@
 local items = {
-    name = "thermal:sulfur",
-    name= "mekanism:ingot_uranium",
-    name= "mekanism:fluorite_gem"
+    "thermal:sulfur",
+    "mekanism:ingot_uranium",
+    "mekanism:fluorite_gem"
 }
 
-local meInterface = peripheral.wrap("appliedernergistics2:interface")
+local meInterface = peripheral.wrap("appliedennergistics2:interface")
 
 local function allItemsAvailable()
-    local aviable = meInferface.getAvailableItems()
+    local available = meInterface.getAvailableItems()
     local counts = {}
-    for _, name in ipairs(available) do
+    for _, stack in pairs(available) do
         counts[stack.name] = stack.size
     end
     
-    for _, name ipairs(items) do
-        if counts[name] == nil oder counts[name] < 1 then
+    for _, name in ipairs(items) do
+        if counts[name] == nil or counts[name] < 1 then
             return false
         end 
     end 
-    return ture
+    return true
 end 
 
 local function exportAllItems()
@@ -26,7 +26,7 @@ local function exportAllItems()
         if allItemsAvailable() then
             for _, name in ipairs(items) do
                 local success = meInterface.exportItem(name,1 )
-                if not sucess then
+                if not success then
                     print("Fehler beim Exportieren von " .. name)
                     return
                 end
