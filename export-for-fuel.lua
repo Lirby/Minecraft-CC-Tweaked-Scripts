@@ -25,9 +25,14 @@ while true do
     
     if allAvailable then
         for _, item in ipairs(items) do
-            local exported = meBridge.exportItemFromSystem(item, chest)
-            if exported then
-                print("Exportiert: " .. item.count .. " von " .. item.name)
+            local exported = meBridge.exportItem({
+                name = item.name,
+                  count = item.count,
+                  toName = peripheral.getName(chest)
+            })
+                
+             if exported and exported.count > 0 then
+                print("Exportiert: " .. exported.count .. " von " .. item.name)
             else
                 print("Fehler beim Export von: " .. item.name)
             end
