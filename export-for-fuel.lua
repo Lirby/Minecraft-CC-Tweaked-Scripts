@@ -4,13 +4,13 @@ local items = {
     "mekanism:fluorite_gem"
 }
 
-local meInterface = peripheral.wrap("bottom")
+local meInterface = peripheral.wrap("left")
 
 local function allItemsAvailable()
-    local available = meInterface.getAvailableItems()
+    local available = meInterface.list()
     local counts = {}
     for _, stack in pairs(available) do
-        counts[stack.name] = stack.size
+        counts[stack.name] = stack.count
     end
     
     for _, name in ipairs(items) do
@@ -25,9 +25,22 @@ local function exportAllItems()
     while true do 
         if allItemsAvailable() then
             for _, name in ipairs(items) do
-                local success = meInterface.exportItem({name = name, count =1})
-                if not success then
-                    print("Fehler beim Exportieren von " .. name)
+                local available = meInterface.list()
+                local slot = nil
+                for s, stack in pairs(available) do
+                    if stack.name == name then
+                        slot = s
+                        break
+                end
+            end
+                if slot then
+                    local success = meInterface.pushItems("left")
+                    if not success then
+                        print("Fehler beim Exportieren von " .. name)
+                        return
+                    end
+                else
+                    print("Item " .. name .. " nicht gefunden im ME System")
                     return
                 end
             end
