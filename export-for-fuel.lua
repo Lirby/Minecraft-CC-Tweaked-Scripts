@@ -1,41 +1,44 @@
-local meBridge = peripheral.wrap("left")
-local chest = peripheral.wrap("right")
-
 local items = {
-    { name = "thermal:sulfur", count = 1 },
-    { name = "mekanism:ingot_uranium", count = 1 },
-    { name = "mekanism:fluorite_gem", count = 1 },
+    name = "thermal:sulfur",
+    name= "mekanism:ingot_uranium",
+    name= "mekanism:fluorite_gem"
 }
 
-local function isItemAvailable(itemName, amount)
-    local details = meBridge.getItem({ name = itemName })
-    return details and details.amount >= amount
-end
+local meInterface = peripheral.wrap("appliedernergistics2:interface")
 
-while true do
-    local allAvailable = true
-    
-    for _, item in ipairs(items) do
-        if not isItemAvailable(item.name, item.count) then
-            print("nicht genug vorhanden: " .. item.name .. " Warte auf Nachschub")
-            allAvailable = false
-            break
-        end
+local function allItemsAvailable()
+    local aviable = meInferface.getAvailableItems()
+    local counts = {}
+    for _, name in ipairs(available) do
+        counts[stack.name] = stack.size
     end
     
-    if allAvailable then
-        for _, item in ipairs(items) do
-            local exported = meBridge.exportItem(item.name, item.count, "right")
-                
-             if exported and exported > 0 then
-                print("Exportiert: " .. exported .. " von " .. item.name)
-            else
-                print("Fehler beim Export von: " .. item.name)
+    for _, name ipairs(items) do
+        if counts[name] == nil oder counts[name] < 1 then
+            return false
+        end 
+    end 
+    return ture
+end 
+
+local function exportAllItems()
+    while true do 
+        if allItemsAvailable() then
+            for _, name in ipairs(items) do
+                local success = meInterface.exportItem(name,1 )
+                if not sucess then
+                    print("Fehler beim Exportieren von " .. name)
+                    return
+                end
             end
-            sleep(0.5)
+            print("Alle 3 Items exportiert.")
+            sleep(1)
+        else
+            print("Mindestens ein Item fehlt, warte bis alle wieder da sind")
+            repeat
+                sleep(5)
+            until allItemsAvailable()
+            print("Alle Items sind wieder verfügbar. Der Export läuft jetzt wieder")
         end
-        sleep(5)
-    else 
-        sleep(10)
     end
 end
