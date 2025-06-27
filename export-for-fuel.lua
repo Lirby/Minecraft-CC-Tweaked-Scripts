@@ -4,7 +4,7 @@ local items = {
     "mekanism:fluorite_gem"
 }
 
-local meInterface = peripheral.wrap("appliedenergistics2:interface")
+local meInterface = peripheral.wrap("bottom")
 
 local function allItemsAvailable()
     local available = meInterface.getAvailableItems()
@@ -25,7 +25,7 @@ local function exportAllItems()
     while true do 
         if allItemsAvailable() then
             for _, name in ipairs(items) do
-                local success = meInterface.exportItem(name,1 )
+                local success = meInterface.exportItem({name = name, count =1})
                 if not success then
                     print("Fehler beim Exportieren von " .. name)
                     return
