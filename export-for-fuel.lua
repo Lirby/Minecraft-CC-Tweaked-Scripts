@@ -34,7 +34,7 @@ local function exportAllItems()
                 end
             end
                 if slot then
-                    local success = meInterface.pushItems("left")
+                    local success = meInterface.pushItems("right", slot, 1)
                     if not success then
                         print("Fehler beim Exportieren von " .. name)
                         return
