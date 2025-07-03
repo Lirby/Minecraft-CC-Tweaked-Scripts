@@ -6,11 +6,11 @@ local tanks = {
 function readChemicalTank(reader)
     if not reader then return nil end
     local data = reader.getBlockData()
-    if not data or not data.GasTanks or not data.GasTanks[0] then
+    if not data or not data.GasTanks or not data.GasTanks[1] then
         return nil
     end
 
-    local gasTank = data.GasTanks[0]
+    local gasTank = data.GasTanks[1]
     local stored = gasTank.stored
 
     local amount = (stored and stored.amount) or 0
