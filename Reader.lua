@@ -13,22 +13,22 @@ function readChemicalTank(reader)
     local gasTank = data.GasTanks[0]
     local stored = gasTank.stored
 
-    if stored and stored.amount then
-        return {
-            amount = stored.amount,
-            gasName= stored.gas or "Unbekannt",
-            capacity = gasTank.capacity or 0
-        }
-    end
+    local amount = (stored and stored.amount) or 0
+    local gasName = (stored and stored.gas) or "Leer"
+    local capacity = gasTank.capacity or 0
 
-    return nil
+    return {
+        amount = amount,
+        gasName = gasName,
+        capacity = capacity,
+    }
 end
 
 for side, reader in pairs(tanks) do
     local tankData = readChemicalTank(reader)
     if tankData then
         print(string.format(
-            "%s Tank: %s - %d mB",
+            "%s Tank: %s - %d  / %d mB",
             side,
             tankData.gasName,
             tankData.amount,
