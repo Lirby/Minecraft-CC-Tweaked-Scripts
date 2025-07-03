@@ -1,8 +1,8 @@
 local reactor = peripheral.wrap("fissionReactorLogicAdapter_0")
 local monitor = peripheral.wrap("top")
 local tanks = {
-    left = peripheral.wrap("left"),
-    right = peripheral.wrap("right")
+    {side = "left", reader = peripheral.wrap("left"), capacity = 8192000 },
+    {side = "right", reader = peripheral.wrap("right"), capacity = 8192000},
 }
 
 -- Monitor
@@ -11,20 +11,20 @@ monitor.setBackgroundColor(colors.black)
 monitor.clear()
 
 -- Chemical tank reader
-function readChemicalTank(reader)
+function readChemicalTank(reader, defaultCap)
     if not reader then
-        return { amount = 0, gasName = "Leer", capacity = 0 }
+        return { amount = 0, gasName = "Leer", capacity = defaultCap}
     end
     local data = reader.getBlockData()
     if not data or not data.GasTanks or not data.GasTanks[0] then
-        return { amount = 0, gasName = "Leer", capacity = 0 }
+        return { amount = 0, gasName = "Leer", capacity = defaultCap }
     end
     local gasTank = data.GasTanks[0]
     local stored = gasTank.stored
     return {
         amount = (stored and stored.amount) or 0,
         gasName = (stored and stored.gas) or "Leer",
-        capacity = gasTank.capacity
+        capacity = gasTank.capacity or defaultCap,
     }
 end
 
@@ -52,11 +52,14 @@ while true do
     local coolantPercent = (coolant / maxCoolant) * 100
 
     -- Data by Ultimate Tank
-    local lt = readChemicalTank(tanks.left)
-    local rt = readChemicalTank(tanks.right)
-    local totalAmt = lt.amount + rt.amount
-    local totalCap = lt.capacity + rt.capacity
-    local fillPct = (totalCap > 0) and (totalAmt / totalCap) * 100 or 0
+    local totalAmt, totalCap = 0, 0
+    for i, t in ipairs(tanks) do
+        local td = readChemicalTank(t.reader, t.capacity)
+        t.data = td
+        totalAmt = totalAmt + td.amount
+        totalCap = totalCap + td.capacity
+    end
+    local fillPct = (totalCap>0) and (totalAmt/totalCap)*100 or 0
     local tankFull = fillPct >= 99
     local tankEmpty = fillPct <= 1
 
@@ -86,17 +89,13 @@ while true do
         totalAmt, totalCap, fillPct
     ))
 
-    monitor.setCursorPos(1,7)
-    monitor.write(string.format(
-        "Links: %s - %d / %d mB",
-        lt.gasName, lt.amount, lt.capacity
-    ))
-
-    monitor.setCursorPos(1,8)
-    monitor.write(string.format(
-        "Rechts: %s - %d / %d mB",
-        rt.gasName, rt.amount, rt.capacity
-    ))
+    for i, t in ipairs(tanks) do
+        monitor.setCursorPos(1, 6 + i)
+        monitor.write(string.format(
+            "%s: %s - %d / %d mB",
+            t.side, t.data.gasName, t.data.amount, t.data.capacity
+        ))
+    end
 
 
     if status == true and (temp > 900 or coolantPercent <40 or tankFull) then
