@@ -1,4 +1,4 @@
-local reactor = peripheral.wrap("fissionReactorLogicAdapter_0")
+local reactor = peripheral.wrap("fissionReactorLogicAdapter_1")
 local monitor = peripheral.wrap("top")
 local tanks = {
     {side = "left", reader = peripheral.wrap("left"), capacity = 8192000 },
