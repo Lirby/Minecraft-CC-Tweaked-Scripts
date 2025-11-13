@@ -88,9 +88,9 @@ end
 local function updateDisplay()
     setupMonitor()
     monitor.setTextColor(colors.white)
-    monitor.write("=== AE2 Auto-Crafter ===")
+    monitor.write("======== AE2 Auto-Crafter ========")
     monitor.setCursorPos(1, 2)
-    monitor.write("------------------------")
+    monitor.write("----------------------------------")
     
     local line = 3
     for _, itemConfig in ipairs(items) do
@@ -162,3 +162,4 @@ end
 
 -- Programm starten
 run()
+
