@@ -23,13 +23,37 @@ local function getItemCount(itemName)
     return 0
 end
 
+-- Tabelle für laufende Crafting-Jobs
+local activeCrafts = {}
+
 -- Funktion um Crafting zu starten
 local function craftItem(itemName, amount)
     local item = bridge.getItem({name = itemName})
     if item and item.isCraftable then
-        bridge.craftItem({name = itemName, count = amount})
+        -- Nur CPUs mit Namen "ac" verwenden
+        bridge.craftItem({name = itemName, count = amount}, "ac")
+        activeCrafts[itemName] = true
         return true
     end
+    return false
+end
+
+-- Funktion um zu prüfen ob noch Crafting-Jobs laufen
+local function isCrafting(itemName)
+    if not activeCrafts[itemName] then
+        return false
+    end
+    
+    local cpus = bridge.getCraftingCPUs()
+    for _, cpu in pairs(cpus) do
+        -- Nur CPUs mit Namen "ac" prüfen
+        if cpu.name == "ac" and cpu.isBusy then
+            return true
+        end
+    end
+    
+    -- Kein CPU mehr beschäftigt, Job ist fertig
+    activeCrafts[itemName] = false
     return false
 end
 
@@ -86,7 +110,8 @@ local function main()
             local current = getItemCount(itemConfig.name)
             local target = itemConfig.target
             
-            if current < target then
+            -- Nur craften wenn unter Ziel UND kein Job läuft
+            if current < target and not isCrafting(itemConfig.name) then
                 local needed = target - current
                 print("Crafte " .. needed .. "x " .. itemConfig.displayName)
                 local success = craftItem(itemConfig.name, needed)
