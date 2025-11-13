@@ -4,7 +4,7 @@
 local bridge = peripheral.wrap("bottom")
 local monitor = peripheral.wrap("right")
 
--- Items die überwacht werden sollen und dann gecraftet werden
+-- Items die überwacht werden sollen
 local items = {
     {name = "minecraft:glass", target = 512, displayName = "Glass"},
     {name = "minecraft:stick", target = 1024, displayName = "Stick"},
@@ -12,7 +12,7 @@ local items = {
     {name = "mekanism:enriched_carbon", target = 512, displayName = "Enriched Carbon"},
     {name = "mekanism:enriched_diamond", target = 128, displayName = "Enriched Diamond"},
     {name = "appliedenergistics2:calculation_processor", target = 4096, displayName = "Calculation Processor"},
-    {name = "appliedenergistics2:engineering_processor", target = 4096, displayName = "Enginerring Processor"},
+    {name = "appliedenergistics2:engineering_processor", target = 4096, displayName = "Engineering Processor"},
     {name = "appliedenergistics2:logic_processor", target = 4096, displayName = "Logic Processor"},
     {name = "mekanism:alloy_infused", target = 1024, displayName = "Infused Alloy"},
     {name = "mekanism:alloy_reinforced", target = 512, displayName = "Reinforced Alloy"},
@@ -22,7 +22,6 @@ local items = {
     {name = "appliedenergistics2:purified_fluix_crystal", target = 256, displayName = "Pure Fluix Crystal"},
     {name = "appliedenergistics2:fluix_dust", target = 256, displayName = "Fluix Dust"},
     {name = "minecraft:oak_planks", target = 512, displayName = "Oak Planks"}
-    
 }
 
 -- Funktion um Item-Anzahl zu prüfen
@@ -36,7 +35,7 @@ local function getItemCount(itemName)
     return 0
 end
 
--- Tabelle für laufende Crafting-Jobs
+-- Tabelle für laufende Crafting-Jobs mit Zeitstempel
 local activeCrafts = {}
 
 -- Funktion um Crafting zu starten
@@ -45,7 +44,7 @@ local function craftItem(itemName, amount)
     if item and item.isCraftable then
         -- Nur CPUs mit Namen "ac" verwenden
         bridge.craftItem({name = itemName, count = amount}, "ac")
-        activeCrafts[itemName] = true
+        activeCrafts[itemName] = os.clock()
         return true
     end
     return false
@@ -57,16 +56,24 @@ local function isCrafting(itemName)
         return false
     end
     
+    -- Mindestens 30 Sekunden warten seit letztem Craft-Start
+    local timeSinceStart = os.clock() - activeCrafts[itemName]
+    if timeSinceStart < 30 then
+        return true
+    end
+    
     local cpus = bridge.getCraftingCPUs()
     for _, cpu in pairs(cpus) do
         -- Nur CPUs mit Namen "ac" prüfen
         if cpu.name == "ac" and cpu.isBusy then
+            -- CPU ist noch beschäftigt, Zeit zurücksetzen
+            activeCrafts[itemName] = os.clock()
             return true
         end
     end
     
-    -- Kein CPU mehr beschäftigt, Job ist fertig
-    activeCrafts[itemName] = false
+    -- Kein CPU mehr beschäftigt und Wartezeit vorbei
+    activeCrafts[itemName] = nil
     return false
 end
 
