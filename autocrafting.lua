@@ -4,12 +4,25 @@
 local bridge = peripheral.wrap("bottom")
 local monitor = peripheral.wrap("right")
 
--- Items die überwacht werden sollen
+-- Items die überwacht werden sollen und dann gecraftet werden
 local items = {
-    {name = "minecraft:glass", target = 500, displayName = "Glass"},
-    {name = "minecraft:iron_ingot", target = 300, displayName = "Iron Ingot"},
-    {name = "minecraft:stick", target = 1000, displayName = "Stick"},
-    -- Füge hier weitere Items hinzu
+    {name = "minecraft:glass", target = 512, displayName = "Glass"},
+    {name = "minecraft:stick", target = 1024, displayName = "Stick"},
+    {name = "mekanism:enriched_redstone", target = 512, displayName = "Enriched Redstone"},
+    {name = "mekanism:enriched_carbon", target = 512, displayName = "Enriched Carbon"},
+    {name = "mekanism:enriched_diamond", target = 128, displayName = "Enriched Diamond"},
+    {name = "appliedenergistics2:calculation_processor", target = 4096, displayName = "Calculation Processor"},
+    {name = "appliedenergistics2:engineering_processor", target = 4096, displayName = "Enginerring Processor"},
+    {name = "appliedenergistics2:logic_processor", target = 4096, displayName = "Logic Processor"},
+    {name = "mekanism:alloy_infused", target = 1024, displayName = "Infused Alloy"},
+    {name = "mekanism:alloy_reinforced", target = 512, displayName = "Reinforced Alloy"},
+    {name = "mekanism:alloy_atomic", target = 128, displayName = "Atomic Alloy"},
+    {name = "appliedenergistics2:silicon", target = 4096, displayName = "Silicon"},
+    {name = "appliedenergistics2:fluix_crystal", target = 1024, displayName = "Fluix Crystal"},
+    {name = "appliedenergistics2:purified_fluix_crystal", target = 256, displayName = "Pure Fluix Crystal"},
+    {name = "appliedenergistics2:fluix_dust", target = 256, displayName = "Fluix Dust"},
+    {name = "minecraft:oak_planks", target = 512, displayName = "Oak Planks"}
+    
 }
 
 -- Funktion um Item-Anzahl zu prüfen
