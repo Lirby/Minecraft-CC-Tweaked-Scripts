@@ -77,27 +77,44 @@ local function isCrafting(itemName)
     return false
 end
 
--- Monitor Setup
+-- Monitor Setup (nur einmal beim Start)
 local function setupMonitor()
     monitor.setTextScale(0.5)
     monitor.clear()
+    monitor.setBackgroundColor(colors.black)
+    monitor.setTextColor(colors.white)
     monitor.setCursorPos(1, 1)
+    monitor.write("=== AE2 Auto-Crafter ===")
+    monitor.setCursorPos(1, 2)
+    monitor.write("------------------------")
+    
+    -- Item-Namen einmalig schreiben
+    local line = 3
+    for _, itemConfig in ipairs(items) do
+        monitor.setCursorPos(1, line)
+        monitor.setTextColor(colors.white)
+        monitor.write(itemConfig.displayName .. ":")
+        line = line + 1
+    end
 end
 
--- Display auf Monitor aktualisieren
+-- Display auf Monitor aktualisieren (nur Zahlen)
 local function updateDisplay()
-    setupMonitor()
-    monitor.setTextColor(colors.white)
-    monitor.write("======== AE2 Auto-Crafter ========")
-    monitor.setCursorPos(1, 2)
-    monitor.write("----------------------------------")
-    
     local line = 3
     for _, itemConfig in ipairs(items) do
         local current = getItemCount(itemConfig.name)
         local target = itemConfig.target
         
-        monitor.setCursorPos(1, line)
+        -- Position für die Zahlen berechnen
+        local nameLength = string.len(itemConfig.displayName) + 2
+        monitor.setCursorPos(nameLength, line)
+        
+        -- Alte Zahlen überschreiben (mit Leerzeichen auffüllen)
+        monitor.setTextColor(colors.black)
+        monitor.write("                    ")
+        
+        -- Neue Zahlen schreiben
+        monitor.setCursorPos(nameLength, line)
         
         -- Farbe setzen
         if current >= target then
@@ -106,8 +123,8 @@ local function updateDisplay()
             monitor.setTextColor(colors.red)
         end
         
-        -- Anzeige formatieren
-        local text = string.format("%s: %d/%d", itemConfig.displayName, current, target)
+        -- Zahlen anzeigen
+        local text = string.format("%d/%d", current, target)
         monitor.write(text)
         
         line = line + 1
@@ -121,8 +138,11 @@ local function main()
     print("AE2 Auto-Crafter gestartet...")
     print("Drücke Strg+T zum Beenden")
     
+    -- Monitor einmalig initialisieren
+    setupMonitor()
+    
     while true do
-        -- Display aktualisieren
+        -- Display aktualisieren (nur Zahlen)
         updateDisplay()
         
         -- Items prüfen und ggf. craften
@@ -162,4 +182,3 @@ end
 
 -- Programm starten
 run()
-
