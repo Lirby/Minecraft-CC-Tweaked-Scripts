@@ -9,7 +9,7 @@ local items
 
 -- Funktion um Config neu zu laden
 local function loadConfig()
-    config = dofile("autocraft_config.lua")
+    config = dofile("config-ac.lua")
     bridge = peripheral.wrap(config.bridge_side)
     monitor = peripheral.wrap(config.monitor_side)
     items = config.items
@@ -127,7 +127,7 @@ local function updateDisplay()
     monitor.setTextColor(colors.white)
 end
 
--- Hauptschleife
+-- Hauptschleife mit Config-Reload
 local function main()
     print("AE2 Auto-Crafter gestartet...")
     print("Konfiguration geladen: " .. #items .. " Items")
@@ -136,8 +136,25 @@ local function main()
     -- Monitor einmalig initialisieren
     setupMonitor()
     
+    local lastReload = 0
+    local RELOAD_INTERVAL = 30  -- Alle 30 Sekunden Config neu laden
+
     while true do
-        -- Display aktualisieren (nur Zahlen)
+        -- Config alle 30 Sekunden neu laden
+        if os.clock() - lastReload >= RELOAD_INTERVAL then
+            local oldItemCount = #items
+            loadConfig()  -- <-- Hier wird neu geladen!
+            lastReload = os.clock()
+            
+            if #items ~= oldItemCount then
+                print("Config aktualisiert! Neue Item-Anzahl: " .. #items)
+                setupMonitor()  -- Monitor neu aufbauen bei neuer Item-Liste
+            else
+                print("Config neu geladen (keine Änderungen).")
+            end
+        end
+
+        -- Display aktualisieren
         updateDisplay()
         
         -- Items prüfen und ggf. craften
@@ -145,7 +162,6 @@ local function main()
             local current = getItemCount(itemConfig.name)
             local target = itemConfig.target
             
-            -- Nur craften wenn unter Ziel UND kein Job läuft
             if current < target and not isCrafting(itemConfig.name) then
                 local needed = target - current
                 print("Crafte " .. needed .. "x " .. itemConfig.displayName)
@@ -156,7 +172,6 @@ local function main()
             end
         end
         
-        -- Konfigurierte Pause vor nächstem Update
         sleep(config.update_interval)
     end
 end
