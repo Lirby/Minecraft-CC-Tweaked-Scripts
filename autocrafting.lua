@@ -1,12 +1,22 @@
 -- AE2 Auto-Crafter für CC:Tweaked mit Lua 5.2
 -- Lädt Konfiguration aus autocraft_config.lua
 
--- Config laden
-local config = dofile("autocraft_config.lua")
+-- Config und Peripherals
+local config
+local bridge
+local monitor
+local items
 
-local bridge = peripheral.wrap(config.bridge_side)
-local monitor = peripheral.wrap(config.monitor_side)
-local items = config.items
+-- Funktion um Config neu zu laden
+local function loadConfig()
+    config = dofile("autocraft_config.lua")
+    bridge = peripheral.wrap(config.bridge_side)
+    monitor = peripheral.wrap(config.monitor_side)
+    items = config.items
+end
+
+-- Erste Config laden
+loadConfig()
 
 -- Tabelle für laufende Crafting-Jobs mit Zeitstempel
 local activeCrafts = {}
