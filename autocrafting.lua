@@ -1,28 +1,15 @@
 -- AE2 Auto-Crafter für CC:Tweaked mit Lua 5.2
--- ME Bridge unten, Monitor rechts
+-- Lädt Konfiguration aus autocraft_config.lua
 
-local bridge = peripheral.wrap("bottom")
-local monitor = peripheral.wrap("right")
+-- Config laden
+local config = dofile("autocraft_config.lua")
 
--- Items die überwacht werden sollen
-local items = {
-    {name = "minecraft:glass", target = 512, displayName = "Glass"},
-    {name = "minecraft:stick", target = 1024, displayName = "Stick"},
-    {name = "mekanism:enriched_redstone", target = 512, displayName = "Enriched Redstone"},
-    {name = "mekanism:enriched_carbon", target = 512, displayName = "Enriched Carbon"},
-    {name = "mekanism:enriched_diamond", target = 128, displayName = "Enriched Diamond"},
-    {name = "appliedenergistics2:calculation_processor", target = 4096, displayName = "Calculation Processor"},
-    {name = "appliedenergistics2:engineering_processor", target = 4096, displayName = "Engineering Processor"},
-    {name = "appliedenergistics2:logic_processor", target = 4096, displayName = "Logic Processor"},
-    {name = "mekanism:alloy_infused", target = 1024, displayName = "Infused Alloy"},
-    {name = "mekanism:alloy_reinforced", target = 512, displayName = "Reinforced Alloy"},
-    {name = "mekanism:alloy_atomic", target = 128, displayName = "Atomic Alloy"},
-    {name = "appliedenergistics2:silicon", target = 4096, displayName = "Silicon"},
-    {name = "appliedenergistics2:fluix_crystal", target = 1024, displayName = "Fluix Crystal"},
-    {name = "appliedenergistics2:purified_fluix_crystal", target = 256, displayName = "Pure Fluix Crystal"},
-    {name = "appliedenergistics2:fluix_dust", target = 256, displayName = "Fluix Dust"},
-    {name = "minecraft:oak_planks", target = 512, displayName = "Oak Planks"}
-}
+local bridge = peripheral.wrap(config.bridge_side)
+local monitor = peripheral.wrap(config.monitor_side)
+local items = config.items
+
+-- Tabelle für laufende Crafting-Jobs mit Zeitstempel
+local activeCrafts = {}
 
 -- Funktion um Item-Anzahl zu prüfen
 local function getItemCount(itemName)
@@ -35,15 +22,12 @@ local function getItemCount(itemName)
     return 0
 end
 
--- Tabelle für laufende Crafting-Jobs mit Zeitstempel
-local activeCrafts = {}
-
 -- Funktion um Crafting zu starten
 local function craftItem(itemName, amount)
     local item = bridge.getItem({name = itemName})
     if item and item.isCraftable then
-        -- Nur CPUs mit Namen "ac" verwenden
-        bridge.craftItem({name = itemName, count = amount}, "ac")
+        -- Nur CPUs mit konfiguriertem Namen verwenden
+        bridge.craftItem({name = itemName, count = amount}, config.cpu_name)
         activeCrafts[itemName] = os.clock()
         return true
     end
@@ -56,16 +40,16 @@ local function isCrafting(itemName)
         return false
     end
     
-    -- Mindestens 30 Sekunden warten seit letztem Craft-Start
+    -- Mindestens konfigurierte Zeit warten seit letztem Craft-Start
     local timeSinceStart = os.clock() - activeCrafts[itemName]
-    if timeSinceStart < 30 then
+    if timeSinceStart < config.craft_cooldown then
         return true
     end
     
     local cpus = bridge.getCraftingCPUs()
     for _, cpu in pairs(cpus) do
-        -- Nur CPUs mit Namen "ac" prüfen
-        if cpu.name == "ac" and cpu.isBusy then
+        -- Nur CPUs mit konfiguriertem Namen prüfen
+        if cpu.name == config.cpu_name and cpu.isBusy then
             -- CPU ist noch beschäftigt, Zeit zurücksetzen
             activeCrafts[itemName] = os.clock()
             return true
@@ -79,7 +63,7 @@ end
 
 -- Monitor Setup (nur einmal beim Start)
 local function setupMonitor()
-    monitor.setTextScale(0.5)
+    monitor.setTextScale(config.monitor_scale)
     monitor.clear()
     monitor.setBackgroundColor(colors.black)
     monitor.setTextColor(colors.white)
@@ -136,6 +120,7 @@ end
 -- Hauptschleife
 local function main()
     print("AE2 Auto-Crafter gestartet...")
+    print("Konfiguration geladen: " .. #items .. " Items")
     print("Drücke Strg+T zum Beenden")
     
     -- Monitor einmalig initialisieren
@@ -161,8 +146,8 @@ local function main()
             end
         end
         
-        -- Kurze Pause vor nächstem Update
-        sleep(5)
+        -- Konfigurierte Pause vor nächstem Update
+        sleep(config.update_interval)
     end
 end
 
