@@ -29,33 +29,9 @@ local function getTargetCpuStatus()
     local found = false
     local busy = false
 
-    local function cpuMatches(cpu)
-        if not targetName or targetName == "" then
-            return true
-        end
-
-        local cpuName = cpu.name and string.lower(cpu.name)
-        if cpuName == targetName then
-            return true
-        end
-
-        -- AE2 1.16.5 meldet oft nur die Crafting Storage Namen, daher auch dort prüfen
-        local storageList = cpu.storage or cpu.storages
-        if type(storageList) == "table" then
-            for _, storage in pairs(storageList) do
-                if type(storage) == "string" and string.lower(storage) == targetName then
-                    return true
-                elseif type(storage) == "table" and storage.name and string.lower(storage.name) == targetName then
-                    return true
-                end
-            end
-        end
-
-        return false
-    end
-
     for _, cpu in pairs(cpus) do
-        if cpuMatches(cpu) then
+        local cpuName = cpu.name and string.lower(cpu.name)
+        if not targetName or cpuName == targetName then
             found = true
 
             local isBusy = cpu.isBusy
@@ -96,7 +72,6 @@ local function craftItem(itemName, amount)
 
         if not found then
             print("Warnung: CPU '" .. tostring(config.cpu_name) .. "' wurde nicht gefunden. Crafting übersprungen.")
-            activeCrafts[itemName] = os.clock()
             return false
         end
 
