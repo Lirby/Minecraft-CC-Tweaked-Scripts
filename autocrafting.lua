@@ -9,7 +9,7 @@ local items
 
 -- Funktion um Config neu zu laden
 local function loadConfig()
-    config = dofile("config-ac.lua")
+    config = dofile("autocrafting-config.lua")
     bridge = peripheral.wrap(config.bridge_side)
     monitor = peripheral.wrap(config.monitor_side)
     items = config.items
@@ -20,6 +20,62 @@ loadConfig()
 
 -- Tabelle für laufende Crafting-Jobs mit Zeitstempel
 local activeCrafts = {}
+
+-- Hilfsfunktion: CPU Status abrufen (findet nur die CPU mit dem konfigurierten Namen)
+local function getTargetCpuStatus()
+    local cpus = bridge.getCraftingCPUs()
+    local targetName = config.cpu_name and string.lower(config.cpu_name)
+
+    local found = false
+    local busy = false
+
+    local function cpuMatches(cpu)
+        if not targetName or targetName == "" then
+            return true
+        end
+
+        local cpuName = cpu.name and string.lower(cpu.name)
+        if cpuName == targetName then
+            return true
+        end
+
+        -- AE2 1.16.5 meldet oft nur die Crafting Storage Namen, daher auch dort prüfen
+        local storageList = cpu.storage or cpu.storages
+        if type(storageList) == "table" then
+            for _, storage in pairs(storageList) do
+                if type(storage) == "string" and string.lower(storage) == targetName then
+                    return true
+                elseif type(storage) == "table" and storage.name and string.lower(storage.name) == targetName then
+                    return true
+                end
+            end
+        end
+
+        return false
+    end
+
+    for _, cpu in pairs(cpus) do
+        if cpuMatches(cpu) then
+            found = true
+
+            local isBusy = cpu.isBusy
+            if isBusy == nil then
+                isBusy = cpu.busy
+            end
+            if isBusy == nil and cpu.status then
+                local status = string.lower(tostring(cpu.status))
+                isBusy = status ~= "idle" and status ~= "ready" and status ~= "available"
+            end
+
+            if isBusy then
+                busy = true
+                break
+            end
+        end
+    end
+
+    return found, busy
+end
 
 -- Funktion um Item-Anzahl zu prüfen
 local function getItemCount(itemName)
@@ -36,6 +92,19 @@ end
 local function craftItem(itemName, amount)
     local item = bridge.getItem({name = itemName})
     if item and item.isCraftable then
+        local found, busy = getTargetCpuStatus()
+
+        if not found then
+            print("Warnung: CPU '" .. tostring(config.cpu_name) .. "' wurde nicht gefunden. Crafting übersprungen.")
+            activeCrafts[itemName] = os.clock()
+            return false
+        end
+
+        if busy then
+            print("CPU '" .. tostring(config.cpu_name) .. "' ist belegt. Warte auf freien Slot ...")
+            return false
+        end
+
         -- Nur CPUs mit konfiguriertem Namen verwenden
         bridge.craftItem({name = itemName, count = amount}, config.cpu_name)
         activeCrafts[itemName] = os.clock()
@@ -55,17 +124,22 @@ local function isCrafting(itemName)
     if timeSinceStart < config.craft_cooldown then
         return true
     end
-    
-    local cpus = bridge.getCraftingCPUs()
-    for _, cpu in pairs(cpus) do
-        -- Nur CPUs mit konfiguriertem Namen prüfen
-        if cpu.name == config.cpu_name and cpu.isBusy then
-            -- CPU ist noch beschäftigt, Zeit zurücksetzen
-            activeCrafts[itemName] = os.clock()
-            return true
-        end
+
+    local found, busy = getTargetCpuStatus()
+
+    -- Wenn die konfigurierte CPU nicht gefunden wird, lieber warten um Flooding zu vermeiden
+    if not found then
+        print("Warnung: CPU '" .. tostring(config.cpu_name) .. "' nicht gefunden. Warte vor neuem Auftrag.")
+        activeCrafts[itemName] = os.clock()
+        return true
     end
-    
+
+    if busy then
+        -- CPU ist noch beschäftigt, Zeit zurücksetzen
+        activeCrafts[itemName] = os.clock()
+        return true
+    end
+
     -- Kein CPU mehr beschäftigt und Wartezeit vorbei
     activeCrafts[itemName] = nil
     return false
