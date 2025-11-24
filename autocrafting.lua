@@ -87,6 +87,38 @@ local function getTargetCpuStatus()
     return found, busy
 end
 
+-- Hilfsfunktion: CPU Status abrufen (findet nur die CPU mit dem konfigurierten Namen)
+local function getTargetCpuStatus()
+    local cpus = bridge.getCraftingCPUs()
+    local targetName = config.cpu_name and string.lower(config.cpu_name)
+
+    local found = false
+    local busy = false
+
+    for _, cpu in pairs(cpus) do
+        local cpuName = cpu.name and string.lower(cpu.name)
+        if not targetName or cpuName == targetName then
+            found = true
+
+            local isBusy = cpu.isBusy
+            if isBusy == nil then
+                isBusy = cpu.busy
+            end
+            if isBusy == nil and cpu.status then
+                local status = string.lower(tostring(cpu.status))
+                isBusy = status ~= "idle" and status ~= "ready" and status ~= "available"
+            end
+
+            if isBusy then
+                busy = true
+                break
+            end
+        end
+    end
+
+    return found, busy
+end
+
 -- Funktion um Item-Anzahl zu prüfen
 local function getItemCount(itemName)
     local itemList = bridge.listItems()
