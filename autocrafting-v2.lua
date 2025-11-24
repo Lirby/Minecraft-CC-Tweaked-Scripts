@@ -12,7 +12,7 @@ local activeCrafts = {}
 
 -- Funktion um Config neu zu laden
 local function loadConfig()
-    config = dofile("autocraft_config.lua")
+    config = dofile("ac-config.lua")
     bridge = peripheral.wrap(config.bridge_side)
     monitor = peripheral.wrap(config.monitor_side)
     items = config.items
@@ -189,3 +189,4 @@ end
 
 -- Programm starten
 run()
+
