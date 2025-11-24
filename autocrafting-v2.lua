@@ -12,7 +12,7 @@ local activeCrafts = {}
 
 -- Funktion um Config neu zu laden
 local function loadConfig()
-    config = dofile("ac_config.lua")
+    config = dofile("autocraft_config.lua")
     bridge = peripheral.wrap(config.bridge_side)
     monitor = peripheral.wrap(config.monitor_side)
     items = config.items
@@ -158,10 +158,10 @@ local function main()
             local target = itemConfig.target
             
             -- Nur craften wenn unter Ziel UND kein Job läuft
-            if current < target and not isCrafting(itemConfig.name) then
+            if current < target and not isCrafting(itemConfig.name, current, target) then
                 local needed = target - current
-                print("Crafte " .. needed .. "x " .. itemConfig.displayName)
-                local success = craftItem(itemConfig.name, needed)
+                print("Crafte " .. needed .. "x " .. itemConfig.displayName .. " (Ziel: " .. target .. ")")
+                local success = craftItem(itemConfig.name, needed, target)
                 if not success then
                     print("Warnung: " .. itemConfig.displayName .. " kann nicht gecraftet werden!")
                 end
