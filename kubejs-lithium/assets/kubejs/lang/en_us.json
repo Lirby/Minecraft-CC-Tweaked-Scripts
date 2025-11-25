@@ -1,0 +1,20 @@
+{
+  
+  "item.kubejs.crystallized_lithium_fluoride": "Crystallized Lithium Fluoride",
+
+  
+  "gas.kubejs.pre_washed_nuclear_waste": "Pre-Washed Nuclear Waste",
+  "gas.kubejs.nuclear_saline_solution": "Nuclear Saline Solution",
+  "gas.kubejs.fluorinated_nuclear_saline_slurry": "Fluorinated Nuclear Saline Slurry",
+  "gas.kubejs.purified_saline_fluoride_slurry": "Purified Saline Fluoride Slurry",
+  "gas.kubejs.gaseous_lithium_fluoride": "Gaseous Lithium Fluoride",
+  "gas.kubejs.lava_vapor": "Lava Vapor",
+
+  "tooltip.kubejs.pre_washed_nuclear_waste": "Partially cleaned nuclear waste.",
+  "tooltip.kubejs.nuclear_saline_solution": "A saline-stabilized nuclear solution.",
+  "tooltip.kubejs.fluorinated_nuclear_saline_slurry": "Slurry enriched with fluoride compounds.",
+  "tooltip.kubejs.purified_saline_fluoride_slurry": "A purified fluoride-rich brine suitable for crystallizing.",
+  "tooltip.kubejs.gaseous_lithium_fluoride": "Lithium fluoride vapor, extremely hot and reactive.",
+  "tooltip.kubejs.lava_vapor": "Superheated vaporized lava used for thermal reduction.",
+  "tooltip.kubejs.crystallized_lithium_fluoride": "A crystallized form of purified lithium fluoride."
+}

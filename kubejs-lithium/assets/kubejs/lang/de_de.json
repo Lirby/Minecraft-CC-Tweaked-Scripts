@@ -1,0 +1,20 @@
+{
+  "item.kubejs.crystallized_lithium_fluoride": "Kristallisiertes Lithiumfluorid",
+
+ 
+  "gas.kubejs.pre_washed_nuclear_waste": "Vor-gewaschener Nuklearabfall",
+  "gas.kubejs.nuclear_saline_solution": "Nukleare Salzlösung",
+  "gas.kubejs.fluorinated_nuclear_saline_slurry": "Fluorierte nukleare Salzschlämme",
+  "gas.kubejs.purified_saline_fluoride_slurry": "Gereinigte Salzfluoridschlämme",
+  "gas.kubejs.gaseous_lithium_fluoride": "Gasförmiges Lithiumfluorid",
+  "gas.kubejs.lava_vapor": "Lavadampf",
+
+
+  "tooltip.kubejs.pre_washed_nuclear_waste": "Teilweise gereinigter nuklearer Abfall.",
+  "tooltip.kubejs.nuclear_saline_solution": "Eine salzstabilisierte nukleare Lösung.",
+  "tooltip.kubejs.fluorinated_nuclear_saline_slurry": "Schlamm, angereichert mit Fluoridverbindungen.",
+  "tooltip.kubejs.purified_saline_fluoride_slurry": "Hochgradig gereinigte fluoridhaltige Salzschlämme, geeignet zur Kristallisation.",
+  "tooltip.kubejs.gaseous_lithium_fluoride": "Gasförmiges Lithiumfluorid – extrem heiß und reaktiv.",
+  "tooltip.kubejs.lava_vapor": "Überhitzter Lavadampf zur thermischen Reduktion.",
+  "tooltip.kubejs.crystallized_lithium_fluoride": "Eine kristallisierte Form von gereinigtem Lithiumfluorid."
+}
