@@ -1,43 +1,15 @@
-// ============================================================================
-//  nuclear_to_lithium.js
-//  ------------------------------------------
-//  Custom Mekanism-Gas-Rezepte via KubeJS
-//  Sichtbar in JEI
-//  Minecraft 1.16.5 + Mekanism + KubeJS
-// ============================================================================
-
 onEvent('recipes', event => {
 
-    // ----------------------------------------------------------------------
-    // Gas-IDs aus Mekanism
-    // ----------------------------------------------------------------------
     const waste    = 'mekanism:spent_nuclear_waste';
     const hcl      = 'mekanism:hydrogen_chloride';
     const brine    = 'mekanism:brine';
     const oxygen   = 'mekanism:oxygen';
     const lithium  = 'mekanism:lithium';
-
-    // ----------------------------------------------------------------------
-    // Item-IDs
-    // ----------------------------------------------------------------------
     const fluorite = 'mekanism:fluorite_gem';
 
-
-    // =========================================================================
-    // 1) PRESSURIZED REACTION CHAMBER (PRC)
-    //
-    //    Spent Nuclear Waste (Gas)
-    //    + Hydrogen Chloride (Gas)
-    //    + Fluorite Dust (Item)
-    //    → Brine Gas
-    //
-    //    WICHTIG:
-    //    • Nur GasOutput
-    //    • Kein fluidOutput
-    //    • Kein itemOutput
-    //    → Nur DANN zeigt JEI es korrekt an
-    // =========================================================================
-
+    // =====================================================================
+    // 1) PRESSURIZED REACTION CHAMBER
+    // =====================================================================
     event.custom({
         type: 'mekanism:reaction',
 
@@ -45,10 +17,16 @@ onEvent('recipes', event => {
             ingredient: { item: fluorite }
         },
 
-        gasInput: [
-            { gas: waste, amount: 500 }, // Waste Gas
-            { gas: hcl,   amount: 250 }  // HCl Gas
-        ],
+        // ❗ WICHTIG: Keine Arrays, sondern zwei getrennte Felder
+        gasInput: {
+            amount: 500,
+            gas: waste
+        },
+
+        gasInput2: {
+            amount: 250,
+            gas: hcl
+        },
 
         gasOutput: {
             gas: brine,
@@ -59,5 +37,27 @@ onEvent('recipes', event => {
 
 
 
-    // =========================================================================
-    // 2)
+    // =====================================================================
+    // 2) CHEMICAL INFUSER
+    // =====================================================================
+    event.custom({
+        type: 'mekanism:chemical_infusing',
+
+        leftInput: {
+            gas: brine,
+            amount: 500
+        },
+
+        rightInput: {
+            gas: oxygen,
+            amount: 250
+        },
+
+        output: {
+            gas: lithium,
+            amount: 100
+        }
+    })
+    .id('custom:mekanism/brine_to_lithium');
+
+});
