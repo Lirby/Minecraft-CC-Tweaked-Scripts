@@ -1,7 +1,7 @@
 onEvent('recipes', event => {
     const oxy   = 'mekanism:oxygen';
-    const bri   = 'mekansim:birne';
-    const lith  = 'mekanism:lithum';
+    const bri   = 'mekansim:brine';
+    const lith  = 'mekanism:lithium';
     
     event.custom({
         type: 'mekanism:chemical_infusing',
@@ -17,10 +17,10 @@ onEvent('recipes', event => {
         },
         
         output: {
-            gas: lithium,
+            gas: lith,
             amount: 100
         }
 
     })
-    .id('custom:mekanism/brine_to_lithium');
+    .id('lirby:mekanism/brine_to_lithium');
 });
