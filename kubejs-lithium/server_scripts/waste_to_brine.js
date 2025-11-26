@@ -1,15 +1,14 @@
 onEvent('recipes', event => {
     const hcl   = 'forge:hydrogen_chloride';
-    const waste = 'mekanism:nuclear_spent_waste';
-    const flu   = 'mekanism:flourite/gem';
+    const waste = 'mekanism:spent_nuclear_waste';
+    const flu   = 'mekanism:fluorite_gem';
     const bri   = 'mekanism:brine';
     
-    event.costum({
+    event.custom({
         type: 'mekanism:reaction',
         
         itemInput: {
-            tag: flu,
-            amount: 1
+            ingredient: { item: flu }
         },
         
         fluidInput: {
@@ -23,9 +22,11 @@ onEvent('recipes', event => {
         },
         
         gasOutput: {
-            gas: birne,
+            gas: bri,
             amount: 100
-        }
+        },
+        
+        duration: 600
     })
-    .id('lirby:mekanism/waste_to_birne');
+    .id('lirby:mekanism/waste_to_brine');
 });
