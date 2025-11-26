@@ -1,6 +1,6 @@
 onEvent('recipes', event => {
     const oxy   = 'mekanism:oxygen';
-    const bri   = 'mekansim:brine';
+    const bri   = 'mekanism:brine';
     const lith  = 'mekanism:lithium';
     
     event.custom({
@@ -24,3 +24,4 @@ onEvent('recipes', event => {
     })
     .id('lirby:mekanism/brine_to_lithium');
 });
+
