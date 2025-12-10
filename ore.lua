@@ -1,19 +1,18 @@
 -- ore.lua
--- Steuerung der Slurry-Batches aus AE2 -> Mekanism Chemical Tank
--- Benötigt: CC:Tweaked, Advanced Peripherals (meBridge), AE2 Additions, Mekanism Chemical Tank
+-- Batch-Steuerung für Slurries aus AE2 -> Mekanism Chemical Tank
+-- 16 Crystallizer -> 3200 mB pro Batch
 
 -------------------------
 -- Einstellungen
 -------------------------
 
--- 16 Crystallizer * 200 mB = 3200 mB pro Batch
-local BATCH_SIZE = 3200          -- mB pro Export
-local TANK_EMPTY_THRESHOLD = 50  -- Tank gilt als "leer" unter diesem Wert
-local LOOP_SLEEP = 2             -- Sekunden Pause zwischen den Checks
+local NUM_CRYST = 16
+local MB_PER_CRYST = 200
+local BATCH_SIZE = NUM_CRYST * MB_PER_CRYST   -- = 3200
 
--- Seite des ME Bridge, an der Tank/Pipe sitzt
--- ANPASSEN falls nötig: "left", "right", "top", "bottom", "front", "back"
-local EXPORT_TARGET = "right"
+local TANK_EMPTY_THRESHOLD = 50   -- unter 50 mB betrachten wir den Tank als "leer"
+local LOOP_SLEEP = 2              -- Sekunden zwischen den Checks
+local EXPORT_TARGET = "right"     -- Seite der ME-Bridge, an der der Tank/Tube sitzt
 
 -------------------------
 -- Peripherals finden
@@ -21,31 +20,64 @@ local EXPORT_TARGET = "right"
 
 local me = peripheral.find("meBridge")
 if not me then
-    error("meBridge nicht gefunden (ist sie mit Modem am Computer angeschlossen?).")
+    error("Keine meBridge gefunden! Ist die Bridge mit Modem am Computer?")
 end
 
-local tank = peripheral.find("basicChemicalTank") or peripheral.wrap("basicChemicalTank_1")
+local tank = peripheral.find("basicChemicalTank")
 if not tank then
-    error("basicChemicalTank nicht gefunden (Computer/Modem direkt am Tank?).")
+    tank = peripheral.wrap("basicChemicalTank_1")
 end
+if not tank then
+    error("Kein basicChemicalTank gefunden! Tank mit Modem verbinden.")
+end
+
+print("ME Bridge: " .. peripheral.getName(me))
+print("Chemical Tank: " .. peripheral.getName(tank))
+print("Batch-Größe: " .. BATCH_SIZE .. " mB")
+
+-------------------------
+-- passende list*/export*-Funktionen suchen
+-------------------------
+
+-- 1) list-Funktion (Chemicals/Fluids)
+local listFuncName = nil
+local listCandidates = { "listChemicals", "listFluids", "listFluid" }
+
+for _, name in ipairs(listCandidates) do
+    if type(me[name]) == "function" then
+        listFuncName = name
+        break
+    end
+end
+
+if not listFuncName then
+    error("meBridge hat weder listChemicals, listFluids noch listFluid – Version zu alt für dieses Script.")
+end
+
+print("Nutze ME-Bridge-Funktion: " .. listFuncName .. "() für Ressourcenliste")
+
+-- 2) export-Funktion (Chemicals/Fluids)
+local exportFuncName = nil
+local exportCandidates = { "exportChemical", "exportFluid" }
+
+for _, name in ipairs(exportCandidates) do
+    if type(me[name]) == "function" then
+        exportFuncName = name
+        break
+    end
+end
+
+if not exportFuncName then
+    error("meBridge hat weder exportChemical noch exportFluid – kann nichts exportieren.")
+end
+
+print("Nutze ME-Bridge-Funktion: " .. exportFuncName .. "() für Export")
 
 -------------------------
 -- Hilfsfunktionen
 -------------------------
 
--- Suche passende Funktion, um alle Chemicals/Fluids zu bekommen
-local listChemicalsFn = me.listChemicals or me.getChemicals or me.listFluids or me.getFluids
-if not listChemicalsFn then
-    error("meBridge hat weder listChemicals/getChemicals noch listFluids/getFluids – Version zu alt?")
-end
-
--- Suche passende Export-Funktion (Chemicals oder Fluids)
-local exportChemFn = me.exportChemical or me.exportFluid
-if not exportChemFn then
-    error("meBridge hat weder exportChemical noch exportFluid – kann nichts exportieren.")
-end
-
--- Inhalt des Mekanism Chemical Tanks lesen
+-- Tank-Füllstand lesen
 local function getTankAmount()
     local ok, stored = pcall(function()
         if tank.getStored then
@@ -66,21 +98,38 @@ local function getTankAmount()
     return amount, name
 end
 
--- Wähle ein Chemical aus dem ME-System, das genug Menge hat (>= BATCH_SIZE)
-local function pickChemical()
-    local chemicals, err = listChemicalsFn({})
-    if not chemicals then
-        print("Fehler bei Chemical-Liste: " .. tostring(err))
-        return nil
+-- Alle Chemicals/Fluids aus ME holen
+local function listResources()
+    -- Versuche erst mit Filter-Tabelle, wenn das crasht dann ohne
+    local ok, res, err = pcall(me[listFuncName], me, {})
+    if not ok then
+        ok, res, err = pcall(me[listFuncName], me)
+        if not ok then
+            print("Fehler beim Aufruf von " .. listFuncName .. ": " .. tostring(res))
+            return {}
+        end
     end
 
+    -- ältere Versionen: nur Tabelle, neuere: table,err
+    if type(res) == "table" then
+        return res
+    elseif type(err) == "table" then
+        return err
+    else
+        return {}
+    end
+end
+
+-- Slurry mit >= BATCH_SIZE finden
+local function pickSlurry()
+    local resources = listResources()
     local best = nil
 
-    for _, chem in pairs(chemicals) do
-        -- Erwartete Felder: chem.name, chem.amount, chem.displayName
+    for _, chem in pairs(resources) do
+        -- typische Felder: name, amount, displayName
         if chem.name and chem.amount and chem.amount >= BATCH_SIZE then
-            -- optional: auf Slurry einschränken
-            if chem.name:find("slurry") then
+            -- Nur Mekanism-Slurries
+            if string.find(chem.name, "slurry", 1, true) then
                 if not best or chem.amount > best.amount then
                     best = chem
                 end
@@ -91,60 +140,54 @@ local function pickChemical()
     return best
 end
 
--------------------------
--- Start-Info
--------------------------
+-- Einen Batch exportieren
+local function exportBatch(chem)
+    local filter = {
+        name  = chem.name,
+        count = BATCH_SIZE
+    }
 
-print("ME Bridge gefunden.")
-print("Chemical Tank gefunden.")
-print("Batch-Größe: " .. BATCH_SIZE .. " mB")
-print("Export-Ziel: " .. EXPORT_TARGET)
-print("Warte auf freien Tank...")
+    local display = chem.displayName or chem.name or "unbekannt"
+    print(("Exportiere %d mB von %s (%s)"):format(BATCH_SIZE, display, chem.name or "?"))
+
+    local ok, res, err = pcall(me[exportFuncName], me, filter, EXPORT_TARGET)
+    if not ok then
+        print("Lua-Fehler beim Export: " .. tostring(res))
+        return false
+    end
+
+    -- neuere Versionen: { exportedCount, errString }
+    if type(res) == "table" then
+        local exported = res[1]
+        local e = res[2]
+        if not exported or exported == 0 then
+            print("Export hat nichts bewegt: " .. tostring(e))
+            return false
+        end
+    end
+
+    return true
+end
 
 -------------------------
--- Haupt-Loop
+-- Hauptloop
 -------------------------
 
 while true do
-    local amount, currentName = getTankAmount()
+    local amount, name = getTankAmount()
 
     if amount <= TANK_EMPTY_THRESHOLD then
-        -- Tank ist quasi leer, neuer Batch darf raus
-        local chem = pickChemical()
-
+        -- Tank ist praktisch leer => neuer Batch erlaubt
+        local chem = pickSlurry()
         if chem then
-            local display = chem.displayName or chem.name or "unbekannt"
-            print(("Exportiere %d mB %s (%s)"):format(BATCH_SIZE, display, chem.name or "?"))
-
-            -- Filter: exakt BATCH_SIZE mB von genau diesem Slurry
-            local filter = {
-                name = chem.name,
-                count = BATCH_SIZE
-            }
-
-            local ok, resOrErr = pcall(function()
-                return exportChemFn(filter, EXPORT_TARGET)
-            end)
-
-            if not ok then
-                print("Export-Fehler (Lua): " .. tostring(resOrErr))
-            else
-                local exported, err = resOrErr[1], resOrErr[2]
-                if not exported then
-                    print("Export fehlgeschlagen: " .. tostring(err))
-                end
-            end
+            exportBatch(chem)
         else
-            -- Kein Chemical mit genug Menge
-            -- Kurze Meldung, dann wieder warten
-            -- (Nicht spammen, wenn du willst, kommentier die nächste Zeile aus)
-            print("Kein Slurry >= " .. BATCH_SIZE .. " mB im ME-System gefunden.")
+            print("Kein Slurry >= " .. BATCH_SIZE .. " mB im ME-System. Warte...")
             sleep(LOOP_SLEEP)
         end
     else
-        -- Tank ist noch voll / Pipes laufen noch leer
-        -- Wenn dir das zu spammy ist, diese Zeile auskommentieren
-        -- print(("Tank noch voll: %d mB (%s)"):format(amount, currentName or "leer"))
+        -- Tank noch nicht leer
+        -- print(("Tank noch befüllt: %d mB (%s)"):format(amount, name or "unbekannt"))
         sleep(LOOP_SLEEP)
     end
 end
